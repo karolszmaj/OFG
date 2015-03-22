@@ -13,7 +13,7 @@
         /// <summary>
         /// All manipulations from ManipulationHandler will be reflected to this RootTransform
         /// </summary>
-        CompositeTransform RootTransform { get; }
+        double CurrentRotation { get; }
 
         Point GetRootControlCenterPoint();
 

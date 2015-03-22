@@ -102,23 +102,23 @@ namespace OFG.Handlers
             return scale;
         }
 
-        private double CalculateRotation(Point delta)
+        private int CalculateRotation(Point delta)
         {
             var manipulationPoint = _target.GetManipulationControlCenterPoint();
             var centerPoint = _target.GetRootControlCenterPoint();
 
             var deltaPoint = new Point(manipulationPoint.X + delta.X, manipulationPoint.Y + delta.Y);
             var angle = _rotationCalculator.CalculateAngle(centerPoint, deltaPoint, RotationUnit.Degrees);
-            var angleDelta = _target.RootTransform.Rotation - angle;
+            var angleDelta = _target.CurrentRotation - angle;
 
             Debug.WriteLine("Rotation: ManipulationPoint[X,Y]: {0} {1}\nDelta[X,Y]: {2} {3}\nAngle: {4}\n",
                 manipulationPoint.X,
                 manipulationPoint.Y,
                 delta.X,
                 delta.Y,
-                angleDelta);
+                angle);
 
-            return angleDelta;
+            return (int)angleDelta;
         }
     }
 }

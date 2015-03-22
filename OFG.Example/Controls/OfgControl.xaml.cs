@@ -26,9 +26,9 @@ namespace OFG.Example.Controls
             get { return Handler; }
         }
 
-        public CompositeTransform RootTransform
+        public double CurrentRotation
         {
-            get { return ContainerTransform; }
+            get { return ContainerTransform.Rotation; }
         }
 
         public Point GetRootControlCenterPoint()
@@ -49,18 +49,36 @@ namespace OFG.Example.Controls
 
         private void ManipulationChangedEventHandler(object sender, ManipulationEventArgs e)
         {
-            if (ContainerTransform.ScaleX*e.ScaleDelta <= MAX_SCALE &&
-                ContainerTransform.ScaleX * e.ScaleDelta >= MIN_SCALE)
-            {
-                ContainerTransform.ScaleX *= e.ScaleDelta;
-                ContainerTransform.ScaleY *= e.ScaleDelta;
-            }
+            HandleScale(e.ScaleDelta);
+            HandleRotation(e.RotationDelta);
+
         }
 
         public void Dispose()
         {
             _gestureObserver.ManipulationChanged -= ManipulationChangedEventHandler;
             _gestureObserver.Dispose();
+        }
+
+        private void HandleScale(double scaleDelta)
+        {
+            if (ContainerTransform.ScaleX * scaleDelta <= MAX_SCALE &&
+               ContainerTransform.ScaleX * scaleDelta >= MIN_SCALE)
+            {
+                ContainerTransform.ScaleX *= scaleDelta;
+                ContainerTransform.ScaleY *= scaleDelta;
+            }
+        }
+
+        private void HandleRotation(double rotationDelta)
+        {
+            if (ContainerTransform.Rotation >= 360 ||
+                ContainerTransform.Rotation < 0)
+            {
+                ContainerTransform.Rotation = 0;
+            }
+
+            ContainerTransform.Rotation += rotationDelta;
         }
     }
 }

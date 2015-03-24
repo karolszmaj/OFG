@@ -9,9 +9,12 @@
     Foreground="{StaticResource PhoneForegroundBrush}"
     d:DesignHeight="200" d:DesignWidth="200">
 
-    <Grid Background="White" RenderTransformOrigin="0.5,0.5">
+    <Grid Background="White" RenderTransformOrigin="0.5,0.5" CacheMode="BitmapCache">
         <Grid.RenderTransform>
-            <CompositeTransform x:Name="ContainerTransform" />
+            <TransformGroup>
+                <CompositeTransform x:Name="ContainerTransform" />
+                <RotateTransform  x:Name="RotateTransform" />
+            </TransformGroup>
         </Grid.RenderTransform>
         <Image Source="/Assets/Logo.jpeg" />
         <Grid Width="48"

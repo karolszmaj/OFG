@@ -11,9 +11,11 @@
         FrameworkElement ManipulationHandler { get; }
 
         /// <summary>
-        /// All manipulations from ManipulationHandler will be reflected to this RootTransform
+        /// This is required for touch calculations from original control
         /// </summary>
-        double CurrentRotation { get; }
+        FrameworkElement RootControl { get; }
+
+        double RotationOffset { get; }
 
         Point GetRootControlCenterPoint();
 

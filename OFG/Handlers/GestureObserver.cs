@@ -10,6 +10,9 @@ using OFG.Interfaces;
 using System.Windows;
 using OFG.Calculators.Scale;
 using OFG.EventArgs;
+using OFG.Calculators.Angle;
+using System.Windows.Media;
+using System.Windows.Controls;
 
 namespace OFG.Handlers
 {
@@ -18,6 +21,9 @@ namespace OFG.Handlers
         private readonly IManipulationControlAware _target;
         private readonly IRotationCalculator _rotationCalculator;
         private readonly IScaleCalculator _scaleCalculator;
+        private Point? _lastPointPosition;
+        private Point _lastTouchPointPosition;
+        private readonly Point CENTER = new Point(0, 0);
 
         public event EventHandler<ManipulationEventArgs> ManipulationChanged;
 
@@ -51,6 +57,7 @@ namespace OFG.Handlers
         public void Dispose()
         {
             _target.ManipulationHandler.ManipulationDelta -= TargetManipulationDeltaEventHandler;
+            Touch.FrameReported -= OnFrameReportedEventHandler;
         }
 
         protected void OnManipulationChanged(double rotationDelta, double scaleDelta)
@@ -64,7 +71,13 @@ namespace OFG.Handlers
 
         protected void Initalize()
         {
-            _target.ManipulationHandler.ManipulationDelta += TargetManipulationDeltaEventHandler;            
+            _target.ManipulationHandler.ManipulationDelta += TargetManipulationDeltaEventHandler;
+            Touch.FrameReported += OnFrameReportedEventHandler;
+        }
+
+        private void OnFrameReportedEventHandler(object sender, TouchFrameEventArgs e)
+        {
+                _lastTouchPointPosition = e.GetPrimaryTouchPoint(_target.RootControl).Position;
         }
 
         private void TargetManipulationDeltaEventHandler(object sender, ManipulationDeltaEventArgs e)
@@ -75,50 +88,53 @@ namespace OFG.Handlers
                 return;
             }
 
-            var rotationDelta = CalculateRotation(e.DeltaManipulation.Translation);
-            var scaleDelta = CalculateScale(e.DeltaManipulation.Translation);
+            var scaleDelta = CalculateScaleDelta(e.DeltaManipulation.Translation);
+            var rotationDelta = CalculateRotation(e.CumulativeManipulation.Translation);
 
             OnManipulationChanged(rotationDelta, scaleDelta);
         }
 
-        private double CalculateScale(Point delta)
+        private double CalculateScaleDelta(Point delta)
         {
-            var centerPoint = _target.GetRootControlCenterPoint();
-            var lastPointOrigin = _target.GetManipulationControlCenterPoint();
-            var newPointOrigin = new Point(lastPointOrigin.X + delta.X, lastPointOrigin.Y + delta.Y);
+            if (_lastPointPosition == null)
+            {
+                _lastPointPosition = MapPointsToInternalCoordinateSystem(_target.GetManipulationControlCenterPoint());
+            }
 
-            var lastPointLength = _scaleCalculator.CalculateLength(centerPoint, lastPointOrigin);
-            var newPointLength = _scaleCalculator.CalculateLength(centerPoint, newPointOrigin);
+            
+            var currentPoint = MapPointsToInternalCoordinateSystem(_lastTouchPointPosition);
+            var lastPointLength = _scaleCalculator.CalculateLength(CENTER, _lastPointPosition.Value);
+            var newPointLength = _scaleCalculator.CalculateLength(CENTER, currentPoint);
 
-            var scale = newPointLength / lastPointLength;
+            var scaleDelta = newPointLength / lastPointLength;
 
-            Debug.WriteLine("Scale: ManipulationPoint[X,Y]: {0} {1}\nDelta[X,Y]: {2} {3}\nScale: {4}\n",
-                centerPoint.X,
-                centerPoint.Y,
-                delta.X,
-                delta.Y,
-                scale);
-
-            return scale;
+            _lastPointPosition = currentPoint;
+            return scaleDelta;
         }
 
-        private int CalculateRotation(Point delta)
+        private double CalculateRotation(Point delta)
         {
-            var manipulationPoint = _target.GetManipulationControlCenterPoint();
-            var centerPoint = _target.GetRootControlCenterPoint();
+            if (_lastPointPosition == null)
+            {
+                _lastPointPosition = MapPointsToInternalCoordinateSystem(_target.GetManipulationControlCenterPoint());
+            }
 
-            var deltaPoint = new Point(manipulationPoint.X + delta.X, manipulationPoint.Y + delta.Y);
-            var angle = _rotationCalculator.CalculateAngle(centerPoint, deltaPoint, RotationUnit.Degrees);
-            var angleDelta = _target.CurrentRotation - angle;
+            var centerPoint = MapPointsToInternalCoordinateSystem(_target.GetRootControlCenterPoint());
+            var currentFingerPosition = MapPointsToInternalCoordinateSystem(_lastTouchPointPosition);
 
-            Debug.WriteLine("Rotation: ManipulationPoint[X,Y]: {0} {1}\nDelta[X,Y]: {2} {3}\nAngle: {4}\n",
-                manipulationPoint.X,
-                manipulationPoint.Y,
-                delta.X,
-                delta.Y,
-                angle);
+            var p2 = new Point((float)currentFingerPosition.X, (float)currentFingerPosition.Y);
+            var angle = _rotationCalculator.CalculateAngle(p2, RotationUnit.Degrees);
+            _lastPointPosition = currentFingerPosition;
 
-            return (int)angleDelta;
+            return -angle - _target.RotationOffset;
+        }
+
+        private Point MapPointsToInternalCoordinateSystem(Point absolutePoint)
+        {
+            var controlCenterPoint = _target.GetRootControlCenterPoint();
+            var mappedPoint = new Point(absolutePoint.X - controlCenterPoint.X, -absolutePoint.Y - controlCenterPoint.Y);
+
+            return mappedPoint;
         }
     }
 }

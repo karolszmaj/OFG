@@ -21,43 +21,44 @@ namespace OFG.Example.Controls
             _gestureObserver.ManipulationChanged += ManipulationChangedEventHandler;
         }
 
+        public double RotationOffset
+        {
+            get { return 45; }
+        }
+
+        public FrameworkElement RootControl
+        {
+            get { return this; }
+        }
+
         public FrameworkElement ManipulationHandler
         {
             get { return Handler; }
         }
 
-        public double CurrentRotation
-        {
-            get { return ContainerTransform.Rotation; }
-        }
-
         public Point GetRootControlCenterPoint()
         {
-            var x = this.ActualWidth/2;
-            var y = this.ActualHeight/2;
-
-            return new Point(x,y);
+            return new Point(this.ActualWidth / 2, - this.ActualHeight / 2);
         }
 
         public Point GetManipulationControlCenterPoint()
         {
-            var x = this.ActualHeight + (18 - 24); //24 is the half of the handler and we have to add the marign offset
-            var y = this.ActualHeight + (18 - 24);
-
-            return new Point(x,y);
-        }
-
-        private void ManipulationChangedEventHandler(object sender, ManipulationEventArgs e)
-        {
-            HandleScale(e.ScaleDelta);
-            HandleRotation(e.RotationDelta);
-
+            var transform = App.RootFrame.TransformToVisual(Handler);
+            var result = transform.Transform(new Point(0, 0));
+            return new Point(Math.Abs(result.X), result.Y);
         }
 
         public void Dispose()
         {
             _gestureObserver.ManipulationChanged -= ManipulationChangedEventHandler;
             _gestureObserver.Dispose();
+        }
+
+        private void ManipulationChangedEventHandler(object sender, ManipulationEventArgs e)
+        {
+            HandleScale(e.ScaleDelta);
+            HandleRotation(e.TotalRotation);
+
         }
 
         private void HandleScale(double scaleDelta)
@@ -70,15 +71,9 @@ namespace OFG.Example.Controls
             }
         }
 
-        private void HandleRotation(double rotationDelta)
+        private void HandleRotation(double angle)
         {
-            if (ContainerTransform.Rotation >= 360 ||
-                ContainerTransform.Rotation < 0)
-            {
-                ContainerTransform.Rotation = 0;
-            }
-
-            ContainerTransform.Rotation += rotationDelta;
+            ContainerTransform.Rotation = angle;
         }
     }
 }

@@ -6,6 +6,6 @@
     {
         double CalculateAngle(Point p1, RotationUnit unit);
 
-        double CalculateAngle(Point p1, Point p2, RotationUnit unit);
+        double CalculateAngle(Point p1, Point rotationCenter, RotationUnit unit);
     }
 }

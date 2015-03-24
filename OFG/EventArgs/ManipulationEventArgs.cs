@@ -2,20 +2,20 @@
 {
     public class ManipulationEventArgs : System.EventArgs
     {
-        private readonly double _rotationDelta;
+        private readonly double _totalRotation;
         private readonly double _scaleDelta;
 
-        public ManipulationEventArgs(double rotationDelta, double scaleDelta)
+        public ManipulationEventArgs(double totalRotation, double scaleDelta)
         {
-            _rotationDelta = rotationDelta;
+            _totalRotation = totalRotation;
             _scaleDelta = scaleDelta;
         }
 
-        public double RotationDelta
+        public double TotalRotation
         {
             get
             {
-                return _rotationDelta;
+                return _totalRotation;
             }
         }
 

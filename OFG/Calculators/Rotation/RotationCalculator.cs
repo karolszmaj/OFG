@@ -5,10 +5,10 @@
 
     public class RotationCalculator : IRotationCalculator
     {
-        public double CalculateAngle(Point p1, Point p2, RotationUnit unit)
+        public double CalculateAngle(Point p1, Point rotationCenter, RotationUnit unit)
         {
             double result = 0;
-            result = CalculateArcTangens(p1, p2);
+            result = CalculateArcTangens(p1, rotationCenter);
             result = ConvertFromRadiansTo(result, unit);
             return result;
         }
@@ -42,9 +42,9 @@
             return Math.Atan2(p1.Y, p1.X);
         }
 
-        private double CalculateArcTangens(Point p1, Point p2)
+        private double CalculateArcTangens(Point p1, Point center)
         {
-            return Math.Atan2(p2.Y - p1.Y, p2.X - p1.X);
+            return Math.Atan2(center.Y - p1.Y, center.X - p1.X);
         }
     }
 }

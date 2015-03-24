@@ -38,7 +38,7 @@ namespace OFG.Example.Controls
 
         public Point GetRootControlCenterPoint()
         {
-            return new Point(this.ActualWidth / 2, - this.ActualHeight / 2);
+            return new Point(this.ActualWidth / 2, this.ActualHeight / 2);
         }
 
         public Point GetManipulationControlCenterPoint()
@@ -56,9 +56,8 @@ namespace OFG.Example.Controls
 
         private void ManipulationChangedEventHandler(object sender, ManipulationEventArgs e)
         {
-            HandleScale(e.ScaleDelta);
             HandleRotation(e.TotalRotation);
-
+            HandleScale(e.ScaleDelta);
         }
 
         private void HandleScale(double scaleDelta)

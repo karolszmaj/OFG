@@ -88,31 +88,31 @@ namespace OFG.Handlers
                 return;
             }
 
-            var scaleDelta = CalculateScaleDelta(e.DeltaManipulation.Translation);
-            var rotationDelta = CalculateRotation(e.CumulativeManipulation.Translation);
+            var scaleDelta = CalculateScaleDelta();
+            var rotationDelta = CalculateRotation();
 
             OnManipulationChanged(rotationDelta, scaleDelta);
         }
 
-        private double CalculateScaleDelta(Point delta)
+        private double CalculateScaleDelta()
         {
             if (_lastPointPosition == null)
             {
                 _lastPointPosition = MapPointsToInternalCoordinateSystem(_target.GetManipulationControlCenterPoint());
             }
 
-            
             var currentPoint = MapPointsToInternalCoordinateSystem(_lastTouchPointPosition);
             var lastPointLength = _scaleCalculator.CalculateLength(CENTER, _lastPointPosition.Value);
             var newPointLength = _scaleCalculator.CalculateLength(CENTER, currentPoint);
 
             var scaleDelta = newPointLength / lastPointLength;
+            Debug.WriteLine("SCALE: {0}", scaleDelta);
 
             _lastPointPosition = currentPoint;
             return scaleDelta;
         }
 
-        private double CalculateRotation(Point delta)
+        private double CalculateRotation()
         {
             if (_lastPointPosition == null)
             {
@@ -126,13 +126,13 @@ namespace OFG.Handlers
             var angle = _rotationCalculator.CalculateAngle(p2, RotationUnit.Degrees);
             _lastPointPosition = currentFingerPosition;
 
-            return -angle - _target.RotationOffset;
+            return angle - _target.RotationOffset;
         }
 
         private Point MapPointsToInternalCoordinateSystem(Point absolutePoint)
         {
             var controlCenterPoint = _target.GetRootControlCenterPoint();
-            var mappedPoint = new Point(absolutePoint.X - controlCenterPoint.X, -absolutePoint.Y - controlCenterPoint.Y);
+            var mappedPoint = new Point(absolutePoint.X - controlCenterPoint.X, absolutePoint.Y - controlCenterPoint.Y);
 
             return mappedPoint;
         }

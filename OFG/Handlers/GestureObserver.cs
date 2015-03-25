@@ -24,6 +24,7 @@ namespace OFG.Handlers
         private Point? _lastPointPosition;
         private Point _lastTouchPointPosition;
         private readonly Point CENTER = new Point(0, 0);
+        private bool _isManipulating;
 
         public event EventHandler<ManipulationEventArgs> ManipulationChanged;
 
@@ -57,6 +58,7 @@ namespace OFG.Handlers
         public void Dispose()
         {
             _target.ManipulationHandler.ManipulationDelta -= TargetManipulationDeltaEventHandler;
+            _target.ManipulationHandler.ManipulationCompleted -= TargetManipulationCompletedEventHandler;
             Touch.FrameReported -= OnFrameReportedEventHandler;
         }
 
@@ -72,16 +74,31 @@ namespace OFG.Handlers
         protected void Initalize()
         {
             _target.ManipulationHandler.ManipulationDelta += TargetManipulationDeltaEventHandler;
+            _target.ManipulationHandler.ManipulationCompleted += TargetManipulationCompletedEventHandler;
             Touch.FrameReported += OnFrameReportedEventHandler;
+           
         }
 
         private void OnFrameReportedEventHandler(object sender, TouchFrameEventArgs e)
         {
+            if(_isManipulating == false)
+            {
+                return;
+            }
+
+            try
+            {
                 _lastTouchPointPosition = e.GetPrimaryTouchPoint(_target.RootControl).Position;
+            }
+            catch (Exception)
+            {
+                Debug.WriteLine("Touch reported error on GestureObserver:OnFrameReportedEventHandler");
+            }
         }
 
         private void TargetManipulationDeltaEventHandler(object sender, ManipulationDeltaEventArgs e)
         {
+            _isManipulating = true;
             e.Handled = true;
             if(e.PinchManipulation != null)
             {
@@ -92,6 +109,11 @@ namespace OFG.Handlers
             var rotationDelta = CalculateRotation();
 
             OnManipulationChanged(rotationDelta, scaleDelta);
+        }
+
+        private void TargetManipulationCompletedEventHandler(object sender, ManipulationCompletedEventArgs e)
+        {
+            _isManipulating = false;
         }
 
         private double CalculateScaleDelta()
